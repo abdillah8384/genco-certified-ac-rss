@@ -19,7 +19,7 @@ tags:
 
 # Certified AC Robust Secure Sets with GENCO in the Loop
 
-GENCO Challenge 2026 entry — **Muhammad Abdillah**, Department of Electrical Engineering, Universitas Pertamina, Jakarta, Indonesia (m.abdillah@universitaspertamina.ac.id). Not affiliated with IBM.
+GENCO Challenge 2026 entry — **Muhammad Abdillah**, Electrical Engineering Study Program, Universitas Pertamina, Jakarta, Indonesia (m.abdillah@universitaspertamina.ac.id). Not affiliated with IBM.
 
 The robust secure set (RSS) is the hourly range of dispatch that stays secure for *every* PV/load realisation in a forecast box, in the base case and in N-1 contingencies (IEEE 118-bus, PGLib, 20 PV buses). This Space shows how a grid foundation model can be used inside a **certified** security workflow:
 
@@ -60,4 +60,4 @@ GENCO used here: 1,077,891 parameters, trained from scratch on CPU because the o
 
 No speed claim on this 118-bus CPU case (exact AC 0.29 ms vs GENCO 10.3 ms per scenario): the contribution is the share of exact checks that can be skipped *with a guarantee*. AC-corrected limits are verified on the screened pool, not over the continuous box; generator Q-limits are reported, not enforced; the conformal guarantee assumes exchangeability (the unseen-topology result is empirical).
 
-Paper (with the complete model and all proofs in the appendix): `paper/main.pdf` · Supplement (formulation and proofs): `paper/supplement.pdf` · Post: `docs/submission_post.md` · Numerical checks of every proved statement: `pytest -q tests`
+Paper (with the complete model and all proofs in the appendix): `Document_Proof_Mathematical_Model/paper_ieee.pdf` · Supplement (formulation and proofs): `Document_Proof_Mathematical_Model/supplement_proofs.pdf` · Numerical checks of every proved statement: `pytest -q tests.`
