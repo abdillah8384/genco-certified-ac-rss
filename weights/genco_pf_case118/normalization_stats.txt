@@ -1,0 +1,3 @@
+Data Normalizer case118_ieee stats:
+{'baseMVA_orig': tensor(100.), 'baseMVA': tensor(132.3000), 'vn_kv_max': tensor(345.)}
+

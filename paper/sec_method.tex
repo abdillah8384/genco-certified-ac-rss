@@ -1,0 +1,108 @@
+\section{Robust Secure Set and Its Certified DC Solution}
+\label{sec:rss}
+\subsection{Bilevel model}
+For hour $h$, nature chooses the PV and load vector $p=[P_R;P_D]$ in the box
+$\mathcal P_h=[\underline p,\overline p]$ of (\ref{eq:box}) and the operator answers with the
+dispatch $u\ge0$ of the dispatchable units. The DC line limits in the base topology and
+in the two contingencies (\ref{eq:line}), the lossless balance (\ref{eq:bal}) and the
+ramp-limited unit bounds (\ref{eq:ramp}) are stacked as $Ap+Bu\le b$ (\ref{eq:Abb}), and
+$\mathcal U(p)=\{u\ge0:Bu\le b-Ap\}$. With the RSS index $\alpha=d^\top u$ (total output of
+the non-balancing units), the RSS limits are~\cite{abdillah2017thesis,yorino2018}
+\begin{equation}
+\overline\alpha_h=\min_{p\in\mathcal P_h}\max_{u\in\mathcal U(p)}d^\top u,\qquad
+\underline\alpha_h=\max_{p\in\mathcal P_h}\min_{u\in\mathcal U(p)}d^\top u .
+\label{eq:rss}
+\end{equation}
+Theorem~\ref{thm:rss} (Appendix~\ref{app:dc}) proves that $[\underline\alpha_h,\overline\alpha_h]$ is
+\emph{exactly} the set of index values that can be achieved for every realisation in the
+box, so the set is empty iff $\underline\alpha_h>\overline\alpha_h$; Lemma~\ref{lem:vertex} proves
+that both worst cases sit at vertices of the box. Both limits are linear bilevel programs
+(\ref{eq:bilevel}) with an LP follower. The dissertation code solved them as one MILP after
+replacing the follower by its KKT conditions linearised with $L=5\cdot10^4$
+(\ref{eq:bigm}); Remark~\ref{rem:bigm} explains why that MILP can report values it does
+not attain.
+
+\subsection{Two-phase Benders decomposition}
+\emph{Master (phase 1)}, (\ref{eq:mp-obj})--(\ref{eq:M6}): $p$, $u$ and binaries
+$z=(z^u,z^\lambda)$ encoding the complementarity pattern,
+\begin{equation}
+u_k\le\overline U_kz^u_k,\qquad b_i-A_ip-B_iu\le S_i(1-z^\lambda_i),
+\label{eq:mp-short}
+\end{equation}
+where $\overline U$ and $S_i=b_i-\min_{p,u}(A_ip+B_iu)$ (\ref{eq:S}) are \emph{exact} bounds
+from the data: no dual variables and no arbitrary big-M. \emph{Subproblem:} is the dual
+system $\mathrm{DF}(J_u,J_\ell)$ (\ref{eq:DF}) feasible for the pattern of the master point?
+If yes, the point is bilevel optimal; if not, a Farkas certificate (Lemma~\ref{lem:farkas})
+gives the combinatorial cut~\cite{codato2006}
+\begin{equation}
+\textstyle\sum_{k\in C_u}(1-z^u_k)+\sum_{i\in C_\ell}z^\lambda_i\ge1 .
+\label{eq:cut-short}
+\end{equation}
+\emph{Robust value-function cut:} $d_2^\top u\ge\varphi_R$, where the static LP
+(\ref{eq:phiR}) lets only the balancing unit adapt to $p$ (Lemma~\ref{lem:robust} proves
+$\max_{\mathcal U(p)}d_2^\top u\ge\varphi_R$ for all $p$); its dual gives the first incumbent.
+\emph{Phase 2:} if $\varphi_R$ does not exist or phase~1 exceeds 15 iterations, the duals
+are lifted into the master with a bound on the dual side only (\ref{eq:lift}).
+
+\begin{theorem}[Certificate; Theorems~\ref{thm:relax}--\ref{thm:phase2}]\label{thm:main-benders}
+At every iteration $F(\hat p)\le\mathrm{OPT}\le\mathrm{UB}$: the incumbent is the exact
+follower reaction at its $p$ (always attained) and the master value is a valid bound.
+Phase~1 terminates finitely; at termination by dual feasibility the solution is
+optimal. Phase~2 is exact if the dual bound $L_d$ is at least the uniform constant $L^\ast$
+of Lemma~\ref{lem:dualbound}.
+\end{theorem}
+
+\section{GENCO in the Loop}
+\label{sec:genco}
+\subsection{AC-correction loop}
+For every hour and limit, starting from the certified DC solution: (i) build a pool of
+PV/load vertices (the Benders worst case, 60 random vertices and GENCO-gradient
+vertices) and the DC follower response $u(p)$ for each, in all three topologies;
+(ii) GENCO predicts the security quantities (\ref{eq:q}) of the whole pool in one batch;
+(iii) the conformal rule (\ref{eq:flag}) flags scenarios; (iv) flagged scenarios are solved
+with exact AC power flow (\ref{eq:acp})--(\ref{eq:acq}); (v) each verified overload derates
+the DC limit of that branch and topology and AC losses tighten the slack bound
+(\ref{eq:derate}); Benders is re-solved. Proposition~\ref{prop:nest} proves that the
+corrected intervals are nested inside the DC interval, Corollary~\ref{cor:empty} that an
+empty corrected set stays empty when the cuts of both limits are merged, and
+Proposition~\ref{prop:loop} states what the output certifies.
+
+\subsection{Probing the corrective layers}
+GENCO's \texttt{GNS\_heterogeneous} evaluates, inside each of its $K$ corrective layers,
+the AC mismatch of its intermediate estimate and feeds it back into the bus embeddings.
+A forward hook on its residual layer records, at no extra cost,
+\begin{equation}
+\bar r^{(l)}=\frac1{|\mathcal N|}\sum_i\sqrt{(\Delta P^{(l)}_i)^2+(\Delta Q^{(l)}_i)^2},\qquad
+\rho=\frac{\bar r^{(K)}}{\bar r^{(1)}} .
+\label{eq:traj-short}
+\end{equation}
+
+\subsection{Physics-trajectory recalibration (PTR) and conformal screening}
+For each security quantity $q_k$ with limit $\ell_k$ and GENCO prediction $\hat q_k$, PTR
+fits on a \emph{tune} split a regressor of GENCO's error on GENCO-internal features
+$z=(\hat q,\bar r^{(1)},\dots,\bar r^{(K)},\rho)$ (\ref{eq:ptr}) and sets
+$\tilde q_k=\hat q_k+g_k(z)$. On an independent \emph{calibration} split~\cite{lei2018} of
+size $n$ the scores $s_k=q_k-\tilde q_k$ give the threshold
+\begin{equation}
+\begin{aligned}
+c_k&=\text{the }\lceil(n+1)(1-\alpha/3)\rceil\text{-th smallest score},\\
+\text{clear}&\iff\tilde q_k+c_k\le\ell_k\quad\forall k .
+\end{aligned}
+\label{eq:conf-short}
+\end{equation}
+\begin{theorem}[No-miss guarantee; Theorem~\ref{thm:conf}]\label{thm:main-conf}
+For a test scenario exchangeable with the calibration scenarios and any $g_k$ fitted
+without them, $\Pr[\text{insecure and cleared}]\le\alpha$.
+\end{theorem}
+The proof (Appendix~\ref{app:conf}) uses the split-conformal quantile Lemma~\ref{lem:conf}
+and a union bound over the three quantities. $g_k\equiv0$ is plain split-conformal; we
+also compare a residual-normalised score $(q_k-\hat q_k)/(\sigma_k+\beta_k\bar r^{(K)})$. PTR
+uses no hour or topology label, so it applies unchanged to a topology GENCO never saw
+(where, however, exchangeability is not guaranteed).
+
+\subsection{Gradient adversary}
+GENCO is differentiable in its inputs. With the dispatch fixed, we ascend the smooth
+maximum (\ref{eq:J}) of GENCO-predicted loading over the three topologies by projected
+sign-gradient steps (\ref{eq:adv}) in $\mathcal P_h$ (Lemma~\ref{lem:lse} bounds the
+smoothing error by $\tau\log|\mathcal E|$), round to the nearest vertex, recompute $u(p)$ and
+add the point to the pool, where it is verified exactly.

@@ -1,0 +1,62 @@
+# GENCO (GNS_heterogeneous) power-flow model for PGLib case118, small configuration
+# trained from scratch on CPU with gridfm-graphkit (official checkpoints: gridfm/genco-pf-datakit).
+version: 1
+callbacks:
+  patience: 100
+  tol: 0
+  early_stopping_monitor: Validation loss
+  checkpoint_monitor: Validation loss
+  lr_scheduler_monitor: Validation loss
+task:
+  task_name: PowerFlow
+data:
+  baseMVA: 100
+  mask_value: 0.0
+  normalization: HeteroDataMVANormalizer
+  networks:
+  - case118_ieee
+  scenarios:
+  - 24000
+  test_ratio: 0.1
+  val_ratio: 0.1
+  workers: 0
+  split_by_load_scenario_idx: true
+  stream_partitions: auto
+model:
+  attention_head: 4
+  edge_dim: 10
+  hidden_size: 24
+  input_bus_dim: 15
+  input_gen_dim: 6
+  output_bus_dim: 2
+  output_gen_dim: 1
+  num_layers: 10
+  type: GNS_heterogeneous
+optimizer:
+  type: AdamW
+  learning_rate: 0.0005
+  optimizer_params:
+    betas: [0.9, 0.999]
+  scheduler_type:  ReduceLROnPlateau
+  scheduler_params:
+    mode: min
+    factor: 0.7      # previously lr_decay
+    patience: 5      # previously lr_patience
+seed: 0
+training:
+  batch_size: 64
+  epochs: 10
+  loss_weights:
+  - 0.1
+  - 0.9
+  losses:
+  - LayeredWeightedPhysics
+  - MaskedBusMSE
+  loss_args:
+  - base_weight: 0.5
+  - {}
+  physics_warmup_epochs: 0 # set >0 to ramp LayeredWeightedPhysics in linearly
+  accelerator: auto
+  devices: auto
+  strategy: auto
+verbose: true

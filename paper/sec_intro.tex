@@ -1,0 +1,34 @@
+\section{Introduction}
+A robust secure set (RSS) tells the operator, for every hour, how far the dispatch of
+controllable units can move while \emph{any} realisation of PV output and load inside a
+forecast box remains secure in the base case and selected contingencies. Computing it is
+a bilevel problem: nature chooses the worst PV/load vertex, the operator answers with the
+best dispatch~\cite{abdillah2017thesis,yorino2018}. Two approximations made it tractable in the
+first author's dissertation: DC power flow (thermal limits on MW instead of MVA, no
+losses, no voltages) and a big-M KKT reformulation solved as one MILP.
+
+This entry asks what a grid foundation model adds to such a \emph{certified} workflow.
+GENCO~\cite{genco2026} is a unified neural solver for power flow, OPF and state
+estimation trained with \texttt{gridfm-graphkit} on data from
+\texttt{gridfm-datakit}~\cite{datakit2025}. We keep certification where it can be had
+and use GENCO where it is strong: batched, differentiable AC prediction with an
+internal physics check. Contributions:
+\begin{enumerate}
+\item A two-phase Benders decomposition for the RSS bilevel that needs no big-M on the
+  primal side and returns a certified bound (Theorem~\ref{thm:main-benders}); on all 48 hourly
+  problems it reproduces the true optimum and exposes reporting errors of the big-M MILP.
+\item A GENCO-in-the-loop AC correction: GENCO screens pools of worst-case PV/load
+  vertices in three topologies, exact AC verifies flagged ones, and AC-correction cuts
+  are fed back to the Benders master.
+\item \emph{Physics-trajectory recalibration} (PTR): the AC power mismatch that GENCO
+  measures in each of its corrective layers explains a large part of its own error; a
+  small recalibrator on that trajectory, wrapped in split-conformal screening, gives a
+  finite-sample bound on missed insecure scenarios (Theorem~\ref{thm:main-conf}) while
+  clearing many more secure scenarios than plain conformal screening, also in a topology
+  GENCO never saw.
+\item A GENCO-gradient adversary over the PV/load box, evaluated against exact AC power
+  flow.
+\end{enumerate}
+The complete model (every equation used by the code) and complete proofs of all
+statements are given in Appendices~A--G. Everything is reproducible with one command;
+no result in this paper is set by hand.

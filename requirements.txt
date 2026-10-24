@@ -1,0 +1,9 @@
+# Hugging Face Space (app.py): results viewer, live Benders RSS, live conformal screen.
+# The full pipeline (data generation, GENCO training, exact AC) uses requirements-full.txt via setup.sh.
+scipy>=1.14
+numpy>=2.0
+pandas>=2.2
+pyarrow>=15
+scikit-learn>=1.5
+matplotlib>=3.8
+tabulate
