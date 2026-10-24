@@ -19,7 +19,7 @@ tags:
 
 # Certified AC Robust Secure Sets with GENCO in the Loop
 
-GENCO Challenge 2026 entry — **Muhammad Abdillah**, Department of Electrical Engineering, Universitas Pertamina, Jakarta, Indonesia (muhammad.abdillah@universitaspertamina.ac.id). Not affiliated with IBM.
+GENCO Challenge 2026 entry — **Muhammad Abdillah**, Department of Electrical Engineering, Universitas Pertamina, Jakarta, Indonesia (m.abdillah@universitaspertamina.ac.id). Not affiliated with IBM.
 
 The robust secure set (RSS) is the hourly range of dispatch that stays secure for *every* PV/load realisation in a forecast box, in the base case and in N-1 contingencies (IEEE 118-bus, PGLib, 20 PV buses). This Space shows how a grid foundation model can be used inside a **certified** security workflow:
 
